@@ -92,7 +92,7 @@ def volute(V1,Ws,rot,DPi,Qi,B1,D2,alpha2):
     Ytet = Rtet * num.cos(num.radians(teta))
     return [V4,D3,Bv,R4,DR,Xtet,Ytet]
 
-def design(nameF,Qi,Pin,DPi,Nb,th,w,T):
+def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2):
     Rf = 287.058 # Universal Constant of Gases [J/(Kg K)]
     pAtm = 101325 # [Pa] atmospheric pressure
     slip = 1-(1.98/Nb) #Stanitz
@@ -117,7 +117,8 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T):
             #Correction with hydraulic, leakage and power losses
             #Leakage losses
             Cd = 0.65 #The disharge coefficient
-            cl = 0.01 * D1 #clearance (1% D1)
+            #c1 = 0.01
+            cl = c1 * D1 #clearance (1% D1)
             QL = Cd * (pi * D1) * cl * num.sqrt((4*abs(DPi)/3)/rot)
             print("       - Flow rate correction: {:3.5f} cm/s".format(QL))
             #Suction pressure loss - ki - loss factor 0.1
@@ -166,8 +167,8 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T):
     Dshaft = (16*Tideal*safe/(pi * tau))**(1/3)
 
     #output of the Design function
-    Ainlet =  [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct]
-    Aoutlet = [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf]
+    Ainlet =  [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,c1]
+    Aoutlet = [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf,c2]
     Avolute = [V4,D3,Bv,R4,DR,Xtet,Ytet]
     Ac      = [Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft]
 
@@ -190,16 +191,20 @@ def thisIsMyDesign(nameF,Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft,D1,Ddu
     data.write('Qf  = {:3.5f} cm/s\n'.format(Qf))
     data.write("DPs = {:3.5f} Pa\n".format(DPf))
     data.write("Pid = {:3.5f} W\n".format(Pideal))
+    
+    data.write("Dduct  = {:3.5f} m - Duct diameter\n".format(Dduct))
+    data.write("Lduct  = {:3.5f} m - Duct lenght\n".format(Lduct))
+
     data.write("D1  = {:3.5f} m - Inner diameter\n".format(D1))
     data.write("D2  = {:3.5f} m - Outer diameter\n".format(D2))
     data.write("B1  = {:3.5f} m - inner width\n".format(B1))
     data.write("B2  = {:3.5f} m - outer width\n".format(B2))
     data.write("Nb  = {:3.5f} - Number of blades\n".format(Nb))
+
     data.write("etaT  = {:3.5f} - Total Efficiency\n".format(etaTot))
     data.write("etaH  = {:3.5f} - Hydraulic Efficiency\n".format(etaHyd))
     data.write("etaV  = {:3.5f} - Volumetric Efficiency\n".format(etaVol))
     data.close()
-
 
 
 def inPutParam():
@@ -215,22 +220,25 @@ def inPutParam():
     th = float(input("- Select the blade thickness th(mm): "))
     w = float(input("- Select the rotational speed w(rpm): "))
 
+    c1 = float(input("- Select the cleareances % of the Din  c1 (1% D1)   =  "))
+    c2 = float(input("- Select the cleareances % of the Dout c2 (1.5% D2) =  "))
+
     th = th/mil # thickness in meter
     w = w*rad   # rot. speed in rad/sec
     T = t + 273 # Temperature in Kelvin
-    return nameF,qo,pin,dPo,nb,th,w,T
+    return nameF,qo,pin,dPo,nb,th,w,T,c1,c2
 
 ##############################################################################
 ###   Main    #####
 #Design input parameter
-nameF,Qo,Pin,DPo,Nb,th,w,T = inPutParam()
+nameF,Qo,Pin,DPo,Nb,th,w,T,c1,c2 = inPutParam()
 Qi = Qo
 DPi = DPo
 #Design Function
-A = design(nameF, Qi, Pin, DPi, Nb, th, w, T)
+A = design(nameF, Qi, Pin, DPi, Nb, th, w, T,c1,c2)
 #Design output
-D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct = A[0]
-U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf = A[1]
+D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,c1 = A[0]
+U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf,c2 = A[1]
 V4,D3,Bv,R4,DR,Xtet,Ytet = A[2]
 Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft = A[3]
 Rb = A[4]
@@ -239,8 +247,8 @@ Rb = A[4]
 thisIsMyDesign(nameF,Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft,D1,Dduct,Lduct,B1,Nb,D2,beta2,B2,D3,Bv,R4,DR,Xtet,Ytet)
 input("Press enter to exit!")
 
-#A[0] = [D1,Dduct,U1,V1,V1m,W1,beta1,B1,A1,Aduct]
-#A[1] = [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws]
+#A[0] = [D1,Dduct,U1,V1,V1m,W1,beta1,B1,A1,Aduct,c1]
+#A[1] = [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,c2]
 ##A[2] = [V4,D3,Bv,R4,DR,Xtet,Ytet]
 ##A[3] = [Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft]
 ##A[4] = Rb
