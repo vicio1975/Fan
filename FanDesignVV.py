@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+This version estimates the parameters with a variable blades width
+
 Created on Wed March 14 09:21:55 2018
 Version 2 variable blades tips
 Goals:
@@ -52,7 +54,7 @@ def impellerIn(Qi,rot,Tatm,uvRatio):
         beta1 = num.rad2deg(num.arctan(1/uvRatio))
         #impeller width at inlet section
     
-        corr1 = 1 # try correction of the thickness = 0.925
+        corr1 = 0.925 # try correction of the thickness = 0.925
         B1 = (Q1/V1)/(pi*D1 - Nb*th)/corr1
         
         Pin = 101325 - 9.806 * rot * (V1**2)/(2*9.806) #Pressure inlet
