@@ -5,11 +5,7 @@ This version estimates the parameters with a variable blades width
 Created on Wed March 14 09:21:55 2018
 Version 2 variable blades tips
 Goals:
-        1. Design Fan geometry - incompressible flow
-            1.1 Write a file with the design parameters
-        2. Design Fan geometry - compressible flow
-            2.1 Write a file with the design parameters
-            2.2 Variable width of the blades
+        2. correction active
         3. Different blades configurations (radial tip, sheet and aerofoil blades ...)
         4. Automatic CAD
 
@@ -54,7 +50,7 @@ def impellerIn(Qi,rot,Tatm,uvRatio):
         beta1 = num.rad2deg(num.arctan(1/uvRatio))
         #impeller width at inlet section
     
-        corr1 = 0.925 # try correction of the thickness = 0.925
+        corr1 = 0.925
         B1 = (Q1/V1)/(pi*D1 - Nb*th)/corr1
         
         Pin = 101325 - 9.806 * rot * (V1**2)/(2*9.806) #Pressure inlet
