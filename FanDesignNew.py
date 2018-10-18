@@ -200,19 +200,19 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
 def affinityLwas(Q,Dp,w,D):
     text = """
-    ########### Affinity laws of the Fan ########
+    --> Affinity laws of the Fan 
       *)    Q1/Q2 = (w1/w2) * (d1/d2)^3
     
-      *)  dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
+      *)    dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
     
       *)    P1/P2 = (w1/w2)^3 * (d1/d2)^5
-    ############################################
+    
     """
     print(text)
 
     q1 = Q
     d1 = D
-    w1 = w/rad
+    w1 = w/rad #in rpm
     dp1 = Dp
 
     affin = 999
@@ -288,14 +288,14 @@ def thisIsMyDesign(nameF,Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft,
     data.write("  * etaT  = {:> 8.2f}% - Static Efficiency\n".format(etaTot*cent))
 
     if aff == True:
-        data.write('\n\n############################  Affinity law #########################\n')
+        data.write('\n\n---------------------  Affinity law ---------------------\n')
         #Qi_new,DPi_new,P_new,w_new,D1_new
-        data.write('\n  * New impeller speed omega\t= {:> 8.0f} rpm\n'.format(w_new/rad))
+        data.write('\n  * New impeller speed omega\t= {:> 8.0f} rpm\n'.format(w_new))
         data.write('\n  * New impeller diameter\t= {:> 8.2f} mm\n'.format(D2_new*mil))
         data.write('\n  * New flow rate Q\t= {:> 8.4f} m^3/s\n'.format(Qi_new))
         data.write('\n  * New pressure rise DP\t= {:> 8.1f} Pa\n'.format(DPi_new))
         data.write('\n  * New generated Power Pow\t= {:> 8.2f} kW\n'.format(P_new))
-        data.write('\n####################################################################')
+        data.write('\n-------------------------------------------------------------')
     data.close()
 
 def inPutParam():
@@ -305,17 +305,17 @@ def inPutParam():
 
     nameF = input("Name of the fan: ") #Assign a name to the Fan
     t = float(input("- Select the air temperature t(C): ")) #Set an operating temperature
-    qo = float(input("- Select the air flow rate Q(m^3/s): ")) #Set a flow rate
-    pin = float(input("- Select the inlet static pressure Pin(Pa): "))
-    pout = float(input("- Select the outlet static pressure Pout(Pa): "))
+    qo = float(input("\n- Select the air flow rate Q(m^3/s): ")) #Set a flow rate
+    pin = float(input("\n- Select the inlet static pressure Pin(Pa): "))
+    pout = float(input("\n- Select the outlet static pressure Pout(Pa): "))
     dPo = abs(pin - pout) # Static Pressure Drop
-    nb = float(input("- Select the number of blades Nb(-): "))
-    th = float(input("- Select the blade thickness th(mm): "))
-    w = float(input("- Select the rotational speed w(rpm): "))
+    nb = float(input("\n- Select the number of blades Nb(-): "))
+    th = float(input("\n- Select the blade thickness th(mm): "))
+    w = float(input("\n- Select the rotational speed w(rpm): "))
 
-    c1 = float(input("- Select the cleareances % of the Din  c1 (1% D1)   =  "))
-    c2 = float(input("- Select the cleareances % of the Dout c2 (1.5% D2) =  "))
-    alfAtt = float(input("- Select the attack angle - beta1 (35-45 deg):  "))
+    c1 = float(input("\n- Select the cleareances % of the Din  c1 (1% D1)   =  "))
+    c2 = float(input("\n- Select the cleareances % of the Dout c2 (1.5% D2) =  "))
+    alfAtt = float(input("\n- Select the attack angle - beta1 (35-45 deg):  "))
     uvRatio = 1/num.tan(num.deg2rad(alfAtt))
 
     th = th/mil # thickness in meter
