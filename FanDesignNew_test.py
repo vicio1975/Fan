@@ -56,35 +56,47 @@ def impellerIn(Qi,rot,Tatm,uvRatio):
         corr1 = 0.925 # correction factor for blade thickness
         B1 = (Q1/V1)/(pi*D1 - Nb*th)/corr1
         
-        Pin = 101325 - 9.806 * rot * (V1**2)/(2*9.806) #Pressure inlet
-        epIn = Pin / 101325 # pressure ratio
+        Pin = pAtm - 9.806 * rot * (V1**2)/(2*9.806) #Pressure inlet
+        epIn = Pin / pAtm #pressure ratio
         Tin = (Tatm * epIn**0.286)
         Rf = 287.058
         rot1 = Pin/(Rf*Tin)
         Qi = Q1 * rot/rot1
         iq += 1
-
         if iq == 1: Q1 = 0
-        
-    return [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Qi,rot1]
+    Pout = Pin + DPi # Pressure at impeller outlet
+    epOut = Pout/Pin #pressure ratio inside the impeller
+    return [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Qi,rot1,epOut]
 
-def impellerOut(DPi,Qi,rot,slip,B1):
-    Pow = 1.1*abs(DPi)*Qi   #Effective power
-    Ws  = Pow/(rot*Qi) #Work to be done
-    U2  = num.sqrt(abs(DPi) * 1.1/(rot*slip)) #Power = Peuler = rho*Q*(U2*0.8*U2)
-    D2  = 2 * U2/w #impeller outer diameter
+def impellerOut(DPi,Qi,rot,V1,B1,epOut,slip,U1):
+    #Energy transfered by impeller   g*q*Had = q*Cp*(T2-T0)
+    #Poisson equation is used to estimate the total energy transfer inside the impeller
+    #The overall head to be developed inside the impeller
+    Had = (Rf*T/(0.286*g))*(epOut**0.286-1)
+    #ceofficient to take into account the friction and the turbulence inside the impeller
+    Kturb = 0.65
+    D2 = (2/w)*(g*Had/Kturb)**0.5 #impeller outer diameter
+    U2  = (w*D2/2) 
     A2 = 0.25*pi*D2**2 #impeller outer aerea
+    #Radial outlet velocity Vm2 is taken 15% less than Vm1.
+    #This is due to sudden changes in velocity occurring within impeller passage.
+    V2m = 0.85*V1
+    #Now, due to blade passage circulation effect (slip):
+    VU2 = U2*(1 - slip)
+    WU2 = U2 - VU2
+    W2 = num.sqrt( V2m**2 + WU2**2 )
+    V2 = (V2m**2+VU2**2)**0.5
+    alpha2 = num.rad2deg(num.arctan(V2m/VU2)) #alpha2 in deg
+    beta2 = num.rad2deg(num.arctan(V2m/WU2)) #beta2 in deg    
+    #Virtual head developed by impeller
+    Hvirtual = (1/2*g)*(U2**2 - U1**2 + W1**2 - W2**2)
+    Heff = 0.85 *Hvirtual
+    #Pressure ratio between impeller eye and impeller outlet base upon effective head
+    epOut**0.286 -1 = 0.286*g*Heff/(R*T) # p127
     
     B2 = B1
 
-    V2m = Qi/((pi*D2 - Nb*th)*B2) #meridian velocity component
-    V2t = slip*U2 #tangential velocity component
-    V2 = num.sqrt(V2m**2 + V2t**2) #outlet velocity800
-    alpha2 = num.rad2deg(num.arctan(V2m/V2t)) #alpha2 in deg
 
-    WU2 = (1-slip) * U2
-    W2 = num.sqrt( V2m**2 + WU2**2 )
-    beta2 = num.rad2deg(num.arctan(V2m/WU2)) #beta2 in deg
     return [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slip]
 
 def blades(D1,D2,beta1):
@@ -112,8 +124,6 @@ def volute(c2,V1,Ws,rot,DPi,Qi,B1,D2,alpha2):
     return [V4,D3,Bv,R4,DR,Xtet,Ytet]
 
 def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
-    Rf = 287.058 # Universal Constant of Gases [J/(Kg K)]
-    pAtm = 101325 # [Pa] atmospheric pressure
     slip = 1-(1.98/Nb) #Stanitz
     #Taking compressibility effect into consideration
     rot = pAtm/(Rf*T) #air density at T celsius
@@ -122,10 +132,10 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
     while corr == False:
         #design with the input data Q & DP
-        D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Q1,rot1 = impellerIn(Qi,rot,T,uvRatio)
+        D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Q1,rot1,epOut = impellerIn(Qi,rot,T,uvRatio)
         Qi = Q1 #corrected value of the flow area due to the compressibility effect
         rot = rot1 #the new density value due to the compressibility effect
-        U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf = impellerOut(DPi,Qi,rot,slip,B1)
+        U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf = impellerOut(DPi,Qi,rot,V1,B1,epOut)
         #function to estimate the volute casing geometry - F(Qi,DPi)
         V4,D3,Bv,R4,DR,Xtet,Ytet = volute(c2,V1,Ws,rot,DPi,Qi,B1,D2,alpha2)
         #Function of Blade design
@@ -162,7 +172,7 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
             #corrected values of the inputa data
             phi2 = (W2/U2)
-            
+           
             slip = 1 - (1.98/Nb)/(1-phi2/num.tan(beta2)) #Stanitz Formula complete formula
             if slip < 1:
                 slip = 1 - (1.98/Nb)
@@ -330,6 +340,10 @@ ver = "2.0" #version of the code
 cent = 100
 mil = 1000 #conversion factor in mm
 rad = (2*pi/60) #coversion factor in rad/s (omega)
+Rf = 287.058 # Universal Constant of Gases [J/(Kg K)]
+pAtm = 101325 # [Pa] atmospheric pressure
+g = 9.806
+
 nameF,Qo,Pin,DPo,Nb,th,w,t,T,c1,c2,uvRatio = inPutParam()
 Qi = Qo
 DPi = DPo
