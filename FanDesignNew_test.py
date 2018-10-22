@@ -66,14 +66,14 @@ def impellerIn(Qi,rot,Tatm,uvRatio):
         if iq == 1: Q1 = 0
     Pout = Pin + DPi # Pressure at impeller outlet
     epOut = Pout/Pin #pressure ratio inside the impeller
-    return [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Qi,rot1,epOut]
+    return [D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Qi,rot1,epOut,Pin]
 
-def impellerOut(DPi,Qi,rot,V1,B1,epOut,slip,U1):
+def impellerOut(DPi,Qi,rot,V1,B1,epOut,slip,U1,Pin):
     #Energy transfered by impeller   g*q*Had = q*Cp*(T2-T0)
     #Poisson equation is used to estimate the total energy transfer inside the impeller
     #The overall head to be developed inside the impeller
-    Had = (Rf*T/(0.286*g))*(epOut**0.286-1)
-    #ceofficient to take into account the friction and the turbulence inside the impeller
+    Had = (Rf*T/(0.286*g))*((epOut**0.286)-1)
+    #coefficient to take into account the friction and the turbulence inside the impeller
     Kturb = 0.65
     D2 = (2/w)*(g*Had/Kturb)**0.5 #impeller outer diameter
     U2  = (w*D2/2) 
@@ -90,11 +90,14 @@ def impellerOut(DPi,Qi,rot,V1,B1,epOut,slip,U1):
     beta2 = num.rad2deg(num.arctan(V2m/WU2)) #beta2 in deg    
     #Virtual head developed by impeller
     Hvirtual = (1/2*g)*(U2**2 - U1**2 + W1**2 - W2**2)
-    Heff = 0.85 *Hvirtual
+    Heff = 0.85 *Hvirtual #15% of energy is lost inside the impeller
     #Pressure ratio between impeller eye and impeller outlet base upon effective head
-    epOut**0.286 -1 = 0.286*g*Heff/(R*T) # p127
+    epimp = ((0.286*g*Heff/(Rf*T))+1)**(1/0.286) 
+
+    P2 = epimp * Pin
+    #Estimates temperature rise and so the density variation 
     
-    B2 = B1
+    # B2 = ...
 
 
     return [U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slip]
@@ -132,10 +135,10 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
     while corr == False:
         #design with the input data Q & DP
-        D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Q1,rot1,epOut = impellerIn(Qi,rot,T,uvRatio)
+        D1,Dduct,Lduct,U1,V1,Vduct,W1,beta1,B1,A1,Aduct,Q1,rot1,epOut,Pin = impellerIn(Qi,rot,T,uvRatio)
         Qi = Q1 #corrected value of the flow area due to the compressibility effect
         rot = rot1 #the new density value due to the compressibility effect
-        U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf = impellerOut(DPi,Qi,rot,V1,B1,epOut)
+        U2,D2,V2,V2m,W2,alpha2,beta2,B2,A2,Pow,Ws,slipf = impellerOut(DPi,Qi,rot,V1,B1,epOut,Pin)
         #function to estimate the volute casing geometry - F(Qi,DPi)
         V4,D3,Bv,R4,DR,Xtet,Ytet = volute(c2,V1,Ws,rot,DPi,Qi,B1,D2,alpha2)
         #Function of Blade design
@@ -143,13 +146,13 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
         
         if QL == 0:
             #First input data not right
-            print("\t=> Correction of input data with hydraulic, leakage and power losses:")
+            print("\n ... correcting the data input with hydraulic, leakage and power losses:")
             #Correction with hydraulic, leakage and power losses
             #Leakage losses
             Cd = 0.65 #The discharge coefficient
             cl = c1 * D1 #clearance (1% D1)
             QL = Cd * (pi * D1) * cl * num.sqrt((4*abs(DPi)/3)/rot)
-            print("       - Flow rate correction: {:3.5f} cm/s".format(QL))
+            print("\n       - Flow rate correction: {:3.5f} cm/s".format(QL))
             #Suction pressure loss - ki - loss factor 0.1
             ki = 0.1
             dpsuct = 0.5 * rot * ki * Vduct**2
@@ -180,10 +183,10 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
             Qi = Qii
             DPi = DPii
         else:
-            print("\n- Impeller diameters:D1 = {:1.4f} m - D2 = {:1.4f} m".format(D1,D2))
+            print("\n- Impeller diameters: D1 = {:1.4f} m - D2 = {:1.4f} m".format(D1,D2))
             print("\n- Impeller width: B1 = {:1.4f} m - B2 = {:1.4f} m".format(B1,B2))
-            print("\n- Speed: omega = {:4.0f} rpm".format(w/rad))
-            ef = "\n- Estimated Efficiency:\n\tetaHydra = {:8.6f}\n\tetaVolum = {:8.6f}\n\tetaTot = {:8.6f}"
+            print("\n- Rotational Speed: omega = {:4.0f} rpm".format(w/rad))
+            ef = "\n- Estimated Efficiency:\n\tetaHydra = {:8.6f}\n\tetaVolum = {:8.6f}\n\tetaTot = {:8.6f}\n"
             print(ef.format(etaHyd,etaVol,etaTot))
             Qf = Qi
             DPf = DPi
@@ -210,12 +213,13 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
 def affinityLwas(Q,Dp,w,D):
     text = """
-    --> Affinity laws of the Fan 
-      *)    Q1/Q2 = (w1/w2) * (d1/d2)^3
+    ~~~~~~~ Affinity laws of the Fan ~~~~~~~~
+      1)    Q1/Q2 = (w1/w2) * (d1/d2)^3
     
-      *)    dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
+      2)    dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
     
-      *)    P1/P2 = (w1/w2)^3 * (d1/d2)^5
+      3)    P1/P2 = (w1/w2)^3 * (d1/d2)^5
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     """
     print(text)
