@@ -133,13 +133,13 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
         
         if QL == 0:
             #First input data not right
-            print("\t=> Correction of input data with hydraulic, leakage and power losses:")
+            print("\n ... correcting the data input with hydraulic, leakage and power losses:")
             #Correction with hydraulic, leakage and power losses
             #Leakage losses
             Cd = 0.65 #The discharge coefficient
             cl = c1 * D1 #clearance (1% D1)
             QL = Cd * (pi * D1) * cl * num.sqrt((4*abs(DPi)/3)/rot)
-            print("       - Flow rate correction: {:3.5f} cm/s".format(QL))
+            print("\n       - Flow rate correction: {:3.5f} cm/s".format(QL))
             #Suction pressure loss - ki - loss factor 0.1
             ki = 0.1
             dpsuct = 0.5 * rot * ki * Vduct**2
@@ -170,10 +170,10 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
             Qi = Qii
             DPi = DPii
         else:
-            print("\n- Impeller diameters:D1 = {:1.4f} m - D2 = {:1.4f} m".format(D1,D2))
+            print("\n- Impeller diameters: D1 = {:1.4f} m - D2 = {:1.4f} m".format(D1,D2))
             print("\n- Impeller width: B1 = {:1.4f} m - B2 = {:1.4f} m".format(B1,B2))
-            print("\n- Speed: omega = {:4.0f} rpm".format(w/rad))
-            ef = "\n- Estimated Efficiency:\n\tetaHydra = {:8.6f}\n\tetaVolum = {:8.6f}\n\tetaTot = {:8.6f}"
+            print("\n- Rotational Speed: omega = {:4.0f} rpm".format(w/rad))
+            ef = "\n- Estimated Efficiency:\n\tetaHydra = {:8.6f}\n\tetaVolum = {:8.6f}\n\tetaTot = {:8.6f}\n"
             print(ef.format(etaHyd,etaVol,etaTot))
             Qf = Qi
             DPf = DPi
@@ -200,12 +200,13 @@ def design(nameF,Qi,Pin,DPi,Nb,th,w,T,c1,c2,uvRatio):
 
 def affinityLwas(Q,Dp,w,D):
     text = """
-    --> Affinity laws of the Fan 
-      *)    Q1/Q2 = (w1/w2) * (d1/d2)^3
+    ~~~~~~~ Affinity laws of the Fan ~~~~~~~~
+      1)    Q1/Q2 = (w1/w2) * (d1/d2)^3
     
-      *)    dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
+      2)    dp1/dp2 = (w1/w2)^2 *(d1/d2)^2
     
-      *)    P1/P2 = (w1/w2)^3 * (d1/d2)^5
+      3)    P1/P2 = (w1/w2)^3 * (d1/d2)^5
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     """
     print(text)
@@ -304,7 +305,7 @@ def inPutParam():
     print("###################################################################\n")
 
     nameF = input("Name of the fan: ") #Assign a name to the Fan
-    t = float(input("- Select the air temperature t(C): ")) #Set an operating temperature
+    t = float(input("\n- Select the air temperature t(C): ")) #Set an operating temperature
     qo = float(input("\n- Select the air flow rate Q(m^3/s): ")) #Set a flow rate
     pin = float(input("\n- Select the inlet static pressure Pin(Pa): "))
     pout = float(input("\n- Select the outlet static pressure Pout(Pa): "))
