@@ -53,7 +53,7 @@ def impellerIn(Qi,rot,Tatm,uvRatio):
         beta1 = num.rad2deg(num.arctan(1/uvRatio))
         #impeller width at inlet section
     
-        corr1 = 0.925 # correction factor for blade thickness
+        corr1 = 1 # correction factor for blade thickness
         B1 = (Q1/V1)/(pi*D1 - Nb*th)/corr1
         
         Pin = 101325 - 9.806 * rot * (V1**2)/(2*9.806) #Pressure inlet
@@ -346,7 +346,7 @@ Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft = A[3]
 Rb = A[4]
 
 #Affinity laws
-aff = input("Would like to use the affinity laws? [y/n]")
+aff = input("Would like to use the affinity laws? [y/n] ... ")
 if aff in ['Y','y','Yes','yes','YES']:
     aff = True
     #Affinity laws
