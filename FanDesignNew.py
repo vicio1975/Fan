@@ -10,7 +10,7 @@ compressibility of the flow. The blade has the same width.
 ver. 2
 The affinity laws are added
  
-Todo list:
+To-Do list:
 - Compressible effect on the outer diameter
             
 Note1 >> For Boundary layer use the tool BoundaryLayer.py !!
