@@ -97,6 +97,7 @@ def impellerOut(DPi,Qi,rot,V1,B1,epOut,slip,U1,Pin):
     P2 = epimp * Pin
     #Estimates temperature rise and so the density variation 
     
+    
     # B2 = ...
 
 
