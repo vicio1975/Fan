@@ -271,7 +271,8 @@ def thisIsMyDesign(nameF,Qf,DPf,etaHyd,etaVol,etaTot,Pideal,Tideal,Dshaft,
 
     data.write("  * Dduct  = {:> 8.2f} mm - Duct diameter\n".format(Dduct*mil))
     data.write("  * Lduct  = {:> 8.2f} mm - Duct lenght\n\n".format(Lduct*mil))
-
+    data.write("  * R4  = {:> 8.2f} mm - Duct volute radius\n\n".format(R4*mil))
+    
     data.write("  * D1\t= {:> 8.2f} mm - Inner diameter\n".format(D1*mil))
     data.write("  * D2\t= {:> 8.2f} mm - Outer diameter\n".format(D2*mil))
     data.write("  * B1\t= {:> 8.2f} mm - inner width\n".format(B1*mil))
